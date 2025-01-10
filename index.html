@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-do List</title>
+    <style>
+        /* Add your CSS styling here */
+        body { font-family: Arial, sans-serif; }
+        .task { border: 1px solid #ccc; padding: 10px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>To-do List</h1>
+    <form id="task-form">
+        <input type="text" id="title" placeholder="Title" required>
+        <textarea id="description" placeholder="Description"></textarea>
+        <button type="submit">Add Task</button>
+    </form>
+    <div id="tasks"></div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/tasks';
+
+        document.getElementById('task-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, description })
+            });
+            const newTask = await response.json();
+            displayTask(newTask);
+        });
+
+        async function loadTasks() {
+            const response = await fetch(API_URL);
+            const tasks = await response.json();
+            tasks.forEach(task => displayTask(task));
+        }
+
+        function displayTask(task) {
+            const taskDiv = document.createElement('div');
+            taskDiv.className = 'task';
+            taskDiv.innerHTML = `
+                <h2>${task.title}</h2>
+                <p>${task.description}</p>
+                <button onclick="deleteTask(${task.id})">Delete</button>
+            `;
+            document.getElementById('tasks').appendChild(taskDiv);
+        }
+
+        async function deleteTask(taskId) {
+            await fetch(`${API_URL}/${taskId}`, { method: 'DELETE' });
+            location.reload();
+        }
+
+        loadTasks();
+    </script>
+</body>
+</html>
